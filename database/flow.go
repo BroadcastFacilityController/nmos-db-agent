@@ -144,3 +144,24 @@ SELECT * FROM flows WHERE id = @id
 	}
 	return &flow, nil
 }
+
+func SelectFlowsByDeviceID(ctx context.Context, deviceID uuid.UUID) ([]schema.Flow, error) {
+	query := `
+SELECT * FROM flows WHERE device_id = @device_id
+	`
+	args := pgx.NamedArgs{
+		"device_id": deviceID,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	flows, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Flow])
+	if err != nil {
+		return nil, err
+	}
+	return flows, nil
+}

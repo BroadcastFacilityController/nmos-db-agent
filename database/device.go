@@ -100,3 +100,24 @@ SELECT * FROM devices WHERE id = @id
 	}
 	return &device, nil
 }
+
+func SelectDevicesByNodeID(ctx context.Context, nodeID uuid.UUID) ([]schema.Device, error) {
+	query := `
+SELECT * FROM devices WHERE node_id = @node_id
+	`
+	args := pgx.NamedArgs{
+		"node_id": nodeID,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	devices, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Device])
+	if err != nil {
+		return nil, err
+	}
+	return devices, nil
+}

@@ -116,3 +116,24 @@ SELECT * FROM senders WHERE id = @id
 	}
 	return &sender, nil
 }
+
+func SelectSendersByDeviceID(ctx context.Context, deviceID uuid.UUID) ([]schema.Sender, error) {
+	query := `
+SELECT * FROM senders WHERE device_id = @device_id
+	`
+	args := pgx.NamedArgs{
+		"device_id": deviceID,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	senders, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Sender])
+	if err != nil {
+		return nil, err
+	}
+	return senders, nil
+}

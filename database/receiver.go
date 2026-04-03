@@ -108,3 +108,63 @@ SELECT * FROM receivers WHERE id = @id
 	}
 	return &receiver, nil
 }
+
+func SelectReceiversByFormat(ctx context.Context, format string) ([]schema.Receiver, error) {
+	query := `
+SELECT * FROM receivers WHERE format = @format
+	`
+	args := pgx.NamedArgs{
+		"format": format,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	receivers, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Receiver])
+	if err != nil {
+		return nil, err
+	}
+	return receivers, nil
+}
+
+func SelectReceiverDistinctFormats(ctx context.Context) ([]string, error) {
+	query := `
+SELECT DISTINCT format FROM receivers
+	`
+	rows, err := db.db.Query(ctx, query)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	formats, err := pgx.CollectRows(rows, pgx.RowToStructByName[string])
+	if err != nil {
+		return nil, err
+	}
+	return formats, nil
+}
+
+func SelectReceiversByDeviceID(ctx context.Context, deviceID uuid.UUID) ([]schema.Receiver, error) {
+	query := `
+SELECT * FROM receivers WHERE device_id = @device_id
+	`
+	args := pgx.NamedArgs{
+		"device_id": deviceID,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	receivers, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Receiver])
+	if err != nil {
+		return nil, err
+	}
+	return receivers, nil
+}

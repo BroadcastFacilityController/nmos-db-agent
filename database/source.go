@@ -107,3 +107,63 @@ SELECT * FROM sources WHERE id = @id
 	}
 	return &source, nil
 }
+
+func SelectSourcesByFormat(ctx context.Context, format string) ([]schema.Source, error) {
+	query := `
+SELECT * FROM sources WHERE format = @format
+	`
+	args := pgx.NamedArgs{
+		"format": format,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	sources, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Source])
+	if err != nil {
+		return nil, err
+	}
+	return sources, nil
+}
+
+func SelectSourceDistinctFormats(ctx context.Context) ([]string, error) {
+	query := `
+SELECT DISTINCT format FROM sources
+	`
+	rows, err := db.db.Query(ctx, query)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	formats, err := pgx.CollectRows(rows, pgx.RowToStructByName[string])
+	if err != nil {
+		return nil, err
+	}
+	return formats, nil
+}
+
+func SelectSourcesByDeviceID(ctx context.Context, deviceID uuid.UUID) ([]schema.Source, error) {
+	query := `
+SELECT * FROM sources WHERE device_id = @device_id
+	`
+	args := pgx.NamedArgs{
+		"device_id": deviceID,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	sources, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Source])
+	if err != nil {
+		return nil, err
+	}
+	return sources, nil
+}
