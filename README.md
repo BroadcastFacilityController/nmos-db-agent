@@ -12,3 +12,22 @@ This package provides a go service which will maintain a connection with an exte
 | DB_PASSWORD           | Postgres Database Password       | string                           | DB_PASSWORD=admin                 |
 | NMOS_REGISTRY_ADDRESS | NMOS Registry (QueryAPI) Address | string                           | NMOS_REGISTRY_ADDRESS=10.10.60.10 |
 | NMOS_REGISTRY_PORT    | NMOS Registry (QueryAPI) Port    | int                              | NMOS_REGISTRY_PORT=8080           |
+
+
+## Docker Compose
+```yml
+services:
+  bfc-nmos-db-agent:
+    image: ghcr.io/broadcastfacilitycontroller/nmos-db-agent:latest
+    container_name: nmos-db-agent
+    hostname: bfc-nmos-db-agent
+    restart: unless-stopped
+    environment:
+      - DEBUG_LEVEL=info
+      - DB_URL=localhost
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - NMOS_REGISTRY_ADDRESS=10.10.60.10
+      - NMOS_REGISTRY_PORT=8080
+```
