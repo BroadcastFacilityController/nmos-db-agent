@@ -137,3 +137,49 @@ SELECT * FROM senders WHERE device_id = @device_id
 	}
 	return senders, nil
 }
+
+func SelectSendersByFlowID(ctx context.Context, flowID uuid.UUID) ([]schema.Sender, error) {
+	query := `
+SELECT * FROM senders WHERE flow_id = @flow_id
+	`
+	args := pgx.NamedArgs{
+		"flow_id": flowID,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	senders, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Sender])
+	if err != nil {
+		return nil, err
+	}
+	return senders, nil
+}
+
+func SelectSendersBySourceFormat(ctx context.Context, format string) ([]schema.Sender, error) {
+	query := `
+SELECT s.*
+FROM senders s
+JOIN flows f ON s.flow_id = f.id
+JOIN sources src ON f.source_id = src.id
+WHERE src.format = @format
+	`
+	args := pgx.NamedArgs{
+		"format": format,
+	}
+	rows, err := db.db.Query(ctx, query, args)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	senders, err := pgx.CollectRows(rows, pgx.RowToStructByName[schema.Sender])
+	if err != nil {
+		return nil, err
+	}
+	return senders, nil
+}
