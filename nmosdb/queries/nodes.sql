@@ -2,6 +2,23 @@
 SELECT * FROM nodes
 WHERE id = $1 LIMIT 1;
 
+-- name: GetNodeByDevice :one
+SELECT * FROM nodes N
+WHERE N.id = (
+    SELECT node_id FROM devices D
+    WHERE D.id = $1 LIMIT 1
+) LIMIT 1;
+
+-- name: GetNodeByReceiver :one
+SELECT * FROM nodes N
+WHERE N.id = (
+    SELECT node_id FROM devices D
+    WHERE D.id = (
+        SELECT device_id FROM receivers R
+        WHERE R.id = R1 LIMIT 1
+    ) LIMIT 1
+) LIMIT 1;
+
 -- name: ListNodes :many
 SELECT * FROM nodes
 ORDER BY id;

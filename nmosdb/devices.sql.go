@@ -37,6 +37,34 @@ func (q *Queries) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 	return i, err
 }
 
+const getDeviceByReceiver = `-- name: GetDeviceByReceiver :one
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices D
+WHERE D.id = (
+    SELECT device_id FROM receivers R
+    WHERE R.id = $1 LIMIT 1
+) LIMIT 1
+`
+
+func (q *Queries) GetDeviceByReceiver(ctx context.Context, id uuid.UUID) (Device, error) {
+	row := q.db.QueryRow(ctx, getDeviceByReceiver, id)
+	var i Device
+	err := row.Scan(
+		&i.ID,
+		&i.ResourceVersion,
+		&i.Label,
+		&i.Description,
+		&i.Tags,
+		&i.Type,
+		&i.Receivers,
+		&i.Senders,
+		&i.NodeID,
+		&i.Controls,
+		&i.MetaApiVersion,
+		&i.MetaCreatedAt,
+	)
+	return i, err
+}
+
 const listDevices = `-- name: ListDevices :many
 SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
 ORDER BY id

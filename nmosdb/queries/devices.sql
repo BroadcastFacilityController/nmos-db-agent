@@ -2,6 +2,13 @@
 SELECT * FROM devices
 WHERE id = $1 LIMIT 1;
 
+-- name: GetDeviceByReceiver :one
+SELECT * FROM devices D
+WHERE D.id = (
+    SELECT device_id FROM receivers R
+    WHERE R.id = $1 LIMIT 1
+) LIMIT 1;
+
 -- name: ListDevices :many
 SELECT * FROM devices
 ORDER BY id;

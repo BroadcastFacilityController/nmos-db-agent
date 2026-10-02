@@ -38,6 +38,67 @@ func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (Node, error) {
 	return i, err
 }
 
+const getNodeByDevice = `-- name: GetNodeByDevice :one
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes N
+WHERE N.id = (
+    SELECT node_id FROM devices D
+    WHERE D.id = $1 LIMIT 1
+) LIMIT 1
+`
+
+func (q *Queries) GetNodeByDevice(ctx context.Context, id uuid.UUID) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByDevice, id)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ResourceVersion,
+		&i.Label,
+		&i.Description,
+		&i.Tags,
+		&i.ApiVersions,
+		&i.ApiEndpoints,
+		&i.Caps,
+		&i.Services,
+		&i.Clocks,
+		&i.Interfaces,
+		&i.MetaApiVersion,
+		&i.MetaCreatedAt,
+	)
+	return i, err
+}
+
+const getNodeByReceiver = `-- name: GetNodeByReceiver :one
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes N
+WHERE N.id = (
+    SELECT node_id FROM devices D
+    WHERE D.id = (
+        SELECT device_id FROM receivers R
+        WHERE R.id = R1 LIMIT 1
+    ) LIMIT 1
+) LIMIT 1
+`
+
+func (q *Queries) GetNodeByReceiver(ctx context.Context) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByReceiver)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ResourceVersion,
+		&i.Label,
+		&i.Description,
+		&i.Tags,
+		&i.ApiVersions,
+		&i.ApiEndpoints,
+		&i.Caps,
+		&i.Services,
+		&i.Clocks,
+		&i.Interfaces,
+		&i.MetaApiVersion,
+		&i.MetaCreatedAt,
+	)
+	return i, err
+}
+
 const listNodes = `-- name: ListNodes :many
 SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes
 ORDER BY id
