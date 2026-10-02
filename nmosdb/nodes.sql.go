@@ -73,13 +73,13 @@ WHERE N.id = (
     SELECT node_id FROM devices D
     WHERE D.id = (
         SELECT device_id FROM receivers R
-        WHERE R.id = R1 LIMIT 1
+        WHERE R.id = $1 LIMIT 1
     ) LIMIT 1
 ) LIMIT 1
 `
 
-func (q *Queries) GetNodeByReceiver(ctx context.Context) (Node, error) {
-	row := q.db.QueryRow(ctx, getNodeByReceiver)
+func (q *Queries) GetNodeByReceiver(ctx context.Context, id uuid.UUID) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByReceiver, id)
 	var i Node
 	err := row.Scan(
 		&i.ID,
