@@ -181,6 +181,51 @@ func (q *Queries) ListDevicesByNodeID(ctx context.Context, nodeID *uuid.UUID) ([
 	return items, nil
 }
 
+const listDevicesPaginated = `-- name: ListDevicesPaginated :many
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
+WHERE id >= $1
+ORDER BY id
+LIMIT $2
+`
+
+type ListDevicesPaginatedParams struct {
+	StartingID uuid.UUID
+	PageSize   int32
+}
+
+func (q *Queries) ListDevicesPaginated(ctx context.Context, arg ListDevicesPaginatedParams) ([]Device, error) {
+	rows, err := q.db.Query(ctx, listDevicesPaginated, arg.StartingID, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Device
+	for rows.Next() {
+		var i Device
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceVersion,
+			&i.Label,
+			&i.Description,
+			&i.Tags,
+			&i.Type,
+			&i.Receivers,
+			&i.Senders,
+			&i.NodeID,
+			&i.Controls,
+			&i.MetaApiVersion,
+			&i.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertDevice = `-- name: UpsertDevice :one
 INSERT INTO devices (
     id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version

@@ -302,6 +302,62 @@ func (q *Queries) ListFlowsByFormat(ctx context.Context, format string) ([]Flow,
 	return items, nil
 }
 
+const listFlowsPaginated = `-- name: ListFlowsPaginated :many
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+WHERE id >= $1
+ORDER BY id
+LIMIT $2
+`
+
+type ListFlowsPaginatedParams struct {
+	StartingID uuid.UUID
+	PageSize   int32
+}
+
+func (q *Queries) ListFlowsPaginated(ctx context.Context, arg ListFlowsPaginatedParams) ([]Flow, error) {
+	rows, err := q.db.Query(ctx, listFlowsPaginated, arg.StartingID, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Flow
+	for rows.Next() {
+		var i Flow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceVersion,
+			&i.Label,
+			&i.Description,
+			&i.Tags,
+			&i.SourceID,
+			&i.DeviceID,
+			&i.Parents,
+			&i.GrainRate,
+			&i.Format,
+			&i.MediaType,
+			&i.FrameWidth,
+			&i.FrameHeight,
+			&i.InterlaceMode,
+			&i.Colorspace,
+			&i.TransferCharacteristic,
+			&i.Components,
+			&i.SampleRate,
+			&i.BitDepth,
+			&i.EventType,
+			&i.DidSdid,
+			&i.MetaApiVersion,
+			&i.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertFlow = `-- name: UpsertFlow :one
 INSERT INTO flows (
     id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version

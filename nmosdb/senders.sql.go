@@ -277,6 +277,55 @@ func (q *Queries) ListSendersByTransportAndFlowFormat(ctx context.Context, arg L
 	return items, nil
 }
 
+const listSendersPaginated = `-- name: ListSendersPaginated :many
+SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at FROM senders
+WHERE id >= $1
+ORDER BY id
+LIMIT $2
+`
+
+type ListSendersPaginatedParams struct {
+	StartingID uuid.UUID
+	PageSize   int32
+}
+
+func (q *Queries) ListSendersPaginated(ctx context.Context, arg ListSendersPaginatedParams) ([]Sender, error) {
+	rows, err := q.db.Query(ctx, listSendersPaginated, arg.StartingID, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Sender
+	for rows.Next() {
+		var i Sender
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceVersion,
+			&i.Label,
+			&i.Description,
+			&i.Tags,
+			&i.Caps,
+			&i.FlowID,
+			&i.Transport,
+			&i.DeviceID,
+			&i.ManifestHref,
+			&i.InterfaceBindings,
+			&i.SubscriptionReceiver,
+			&i.SubscriptionActive,
+			&i.TransportFile,
+			&i.MetaApiVersion,
+			&i.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertSender = `-- name: UpsertSender :one
 INSERT INTO senders (
     id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version

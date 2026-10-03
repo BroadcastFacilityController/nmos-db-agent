@@ -248,6 +248,53 @@ func (q *Queries) ListSourcesByFormat(ctx context.Context, format string) ([]Sou
 	return items, nil
 }
 
+const listSourcesPaginated = `-- name: ListSourcesPaginated :many
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+WHERE id >= $1
+ORDER BY id
+LIMIT $2
+`
+
+type ListSourcesPaginatedParams struct {
+	StartingID uuid.UUID
+	PageSize   int32
+}
+
+func (q *Queries) ListSourcesPaginated(ctx context.Context, arg ListSourcesPaginatedParams) ([]Source, error) {
+	rows, err := q.db.Query(ctx, listSourcesPaginated, arg.StartingID, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Source
+	for rows.Next() {
+		var i Source
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceVersion,
+			&i.Label,
+			&i.Description,
+			&i.Tags,
+			&i.GrainRate,
+			&i.Caps,
+			&i.DeviceID,
+			&i.Parents,
+			&i.ClockName,
+			&i.Format,
+			&i.AudioChannels,
+			&i.MetaApiVersion,
+			&i.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertSource = `-- name: UpsertSource :one
 INSERT INTO sources (
     id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version

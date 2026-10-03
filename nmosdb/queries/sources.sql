@@ -6,6 +6,12 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM sources
 ORDER BY id;
 
+-- name: ListSourcesPaginated :many
+SELECT * FROM sources
+WHERE id >= @starting_id
+ORDER BY id
+LIMIT @page_size;
+
 -- name: ListSourcesByFormat :many
 SELECT * FROM sources
 WHERE format = $1

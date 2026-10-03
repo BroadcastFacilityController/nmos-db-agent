@@ -13,6 +13,12 @@ WHERE D.id = (
 SELECT * FROM devices
 ORDER BY id;
 
+-- name: ListDevicesPaginated :many
+SELECT * FROM devices
+WHERE id >= @starting_id
+ORDER BY id
+LIMIT @page_size;
+
 -- name: ListDevicesByNodeID :many
 SELECT * FROM devices
 WHERE node_id = $1

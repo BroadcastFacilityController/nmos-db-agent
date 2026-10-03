@@ -248,6 +248,53 @@ func (q *Queries) ListReceiversByTransport(ctx context.Context, transport *strin
 	return items, nil
 }
 
+const listReceiversPaginated = `-- name: ListReceiversPaginated :many
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+WHERE id >= $1
+ORDER BY id
+LIMIT $2
+`
+
+type ListReceiversPaginatedParams struct {
+	StartingID uuid.UUID
+	PageSize   int32
+}
+
+func (q *Queries) ListReceiversPaginated(ctx context.Context, arg ListReceiversPaginatedParams) ([]Receiver, error) {
+	rows, err := q.db.Query(ctx, listReceiversPaginated, arg.StartingID, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Receiver
+	for rows.Next() {
+		var i Receiver
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceVersion,
+			&i.Label,
+			&i.Description,
+			&i.Tags,
+			&i.DeviceID,
+			&i.Transport,
+			&i.InterfaceBindings,
+			&i.SubscriptionSender,
+			&i.SubscriptionActive,
+			&i.Format,
+			&i.Caps,
+			&i.MetaApiVersion,
+			&i.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertReceiver = `-- name: UpsertReceiver :one
 INSERT INTO receivers (
     id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version

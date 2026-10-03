@@ -6,6 +6,12 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM receivers
 ORDER BY id;
 
+-- name: ListReceiversPaginated :many
+SELECT * FROM receivers
+WHERE id >= @starting_id
+ORDER BY id
+LIMIT @page_size;
+
 -- name: ListReceiversByTransport :many
 SELECT * FROM receivers
 WHERE transport = $1

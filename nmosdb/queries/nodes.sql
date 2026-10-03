@@ -23,6 +23,12 @@ WHERE N.id = (
 SELECT * FROM nodes
 ORDER BY id;
 
+-- name: ListNodesPaginated :many
+SELECT * FROM nodes
+WHERE id >= @starting_id
+ORDER BY id
+LIMIT @page_size;
+
 -- name: ListNodesByCreatedSince :many
 SELECT * FROM nodes
 WHERE meta_created_at >= @created_since

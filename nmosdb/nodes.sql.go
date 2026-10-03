@@ -178,6 +178,52 @@ func (q *Queries) ListNodesByCreatedSince(ctx context.Context, createdSince pgty
 	return items, nil
 }
 
+const listNodesPaginated = `-- name: ListNodesPaginated :many
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes
+WHERE id >= $1
+ORDER BY id
+LIMIT $2
+`
+
+type ListNodesPaginatedParams struct {
+	StartingID uuid.UUID
+	PageSize   int32
+}
+
+func (q *Queries) ListNodesPaginated(ctx context.Context, arg ListNodesPaginatedParams) ([]Node, error) {
+	rows, err := q.db.Query(ctx, listNodesPaginated, arg.StartingID, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Node
+	for rows.Next() {
+		var i Node
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceVersion,
+			&i.Label,
+			&i.Description,
+			&i.Tags,
+			&i.ApiVersions,
+			&i.ApiEndpoints,
+			&i.Caps,
+			&i.Services,
+			&i.Clocks,
+			&i.Interfaces,
+			&i.MetaApiVersion,
+			&i.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertNode = `-- name: UpsertNode :one
 INSERT INTO nodes (
     id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version

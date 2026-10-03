@@ -6,6 +6,12 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM flows
 ORDER BY id;
 
+-- name: ListFlowsPaginated :many
+SELECT * FROM flows
+WHERE id >= @starting_id
+ORDER BY id
+LIMIT @page_size;
+
 -- name: ListFlowsByFormat :many
 SELECT * FROM flows
 WHERE format = $1
