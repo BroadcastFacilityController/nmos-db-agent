@@ -230,11 +230,27 @@ func (q *Queries) ListNodesPaginated(ctx context.Context, arg ListNodesPaginated
 	return items, nil
 }
 
+const updateNodeUserLabel = `-- name: UpdateNodeUserLabel :exec
+UPDATE nodes
+SET meta_user_label = $1
+WHERE id = $2
+`
+
+type UpdateNodeUserLabelParams struct {
+	MetaUserLabel *string
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateNodeUserLabel(ctx context.Context, arg UpdateNodeUserLabelParams) error {
+	_, err := q.db.Exec(ctx, updateNodeUserLabel, arg.MetaUserLabel, arg.ID)
+	return err
+}
+
 const upsertNode = `-- name: UpsertNode :one
 INSERT INTO nodes (
-    id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -248,8 +264,7 @@ SET
     caps = EXCLUDED.caps,
     services = EXCLUDED.services,
     clocks = EXCLUDED.clocks,
-    interfaces = EXCLUDED.interfaces,
-    meta_user_label = EXCLUDED.meta_user_label
+    interfaces = EXCLUDED.interfaces
 WHERE
     nodes.meta_api_version = EXCLUDED.meta_api_version
     AND nodes.resource_version < EXCLUDED.resource_version
@@ -268,7 +283,6 @@ type UpsertNodeParams struct {
 	Services        []byte
 	Clocks          []byte
 	Interfaces      []byte
-	MetaUserLabel   *string
 	MetaApiVersion  string
 }
 
@@ -285,7 +299,6 @@ func (q *Queries) UpsertNode(ctx context.Context, arg UpsertNodeParams) (Node, e
 		arg.Services,
 		arg.Clocks,
 		arg.Interfaces,
-		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Node

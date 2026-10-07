@@ -333,11 +333,27 @@ func (q *Queries) ListSendersPaginated(ctx context.Context, arg ListSendersPagin
 	return items, nil
 }
 
+const updateSenderUserLabel = `-- name: UpdateSenderUserLabel :exec
+UPDATE senders
+SET meta_user_label = $1
+WHERE id = $2
+`
+
+type UpdateSenderUserLabelParams struct {
+	MetaUserLabel *string
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateSenderUserLabel(ctx context.Context, arg UpdateSenderUserLabelParams) error {
+	_, err := q.db.Exec(ctx, updateSenderUserLabel, arg.MetaUserLabel, arg.ID)
+	return err
+}
+
 const upsertSender = `-- name: UpsertSender :one
 INSERT INTO senders (
-    id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -354,8 +370,7 @@ SET
     interface_bindings = EXCLUDED.interface_bindings,
     subscription_receiver = EXCLUDED.subscription_receiver,
     subscription_active = EXCLUDED.subscription_active,
-    transport_file = EXCLUDED.transport_file,
-    meta_user_label = EXCLUDED.meta_user_label
+    transport_file = EXCLUDED.transport_file
 WHERE
     senders.meta_api_version = EXCLUDED.meta_api_version
     AND senders.resource_version < EXCLUDED.resource_version
@@ -377,7 +392,6 @@ type UpsertSenderParams struct {
 	SubscriptionReceiver *uuid.UUID
 	SubscriptionActive   pgtype.Bool
 	TransportFile        []byte
-	MetaUserLabel        *string
 	MetaApiVersion       string
 }
 
@@ -397,7 +411,6 @@ func (q *Queries) UpsertSender(ctx context.Context, arg UpsertSenderParams) (Sen
 		arg.SubscriptionReceiver,
 		arg.SubscriptionActive,
 		arg.TransportFile,
-		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Sender

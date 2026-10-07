@@ -232,11 +232,27 @@ func (q *Queries) ListDevicesPaginated(ctx context.Context, arg ListDevicesPagin
 	return items, nil
 }
 
+const updateDeviceUserLabel = `-- name: UpdateDeviceUserLabel :exec
+UPDATE devices
+SET meta_user_label = $1
+WHERE id = $2
+`
+
+type UpdateDeviceUserLabelParams struct {
+	MetaUserLabel *string
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateDeviceUserLabel(ctx context.Context, arg UpdateDeviceUserLabelParams) error {
+	_, err := q.db.Exec(ctx, updateDeviceUserLabel, arg.MetaUserLabel, arg.ID)
+	return err
+}
+
 const upsertDevice = `-- name: UpsertDevice :one
 INSERT INTO devices (
-    id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -249,8 +265,7 @@ SET
     receivers = EXCLUDED.receivers,
     senders = EXCLUDED.senders,
     node_id = EXCLUDED.node_id,
-    controls = EXCLUDED.controls,
-    meta_user_label = EXCLUDED.meta_user_label
+    controls = EXCLUDED.controls
 WHERE
     devices.meta_api_version = EXCLUDED.meta_api_version
     AND devices.resource_version < EXCLUDED.resource_version
@@ -268,7 +283,6 @@ type UpsertDeviceParams struct {
 	Senders         []string
 	NodeID          *uuid.UUID
 	Controls        []byte
-	MetaUserLabel   *string
 	MetaApiVersion  string
 }
 
@@ -284,7 +298,6 @@ func (q *Queries) UpsertDevice(ctx context.Context, arg UpsertDeviceParams) (Dev
 		arg.Senders,
 		arg.NodeID,
 		arg.Controls,
-		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Device

@@ -302,11 +302,27 @@ func (q *Queries) ListSourcesPaginated(ctx context.Context, arg ListSourcesPagin
 	return items, nil
 }
 
+const updateSourceUserLabel = `-- name: UpdateSourceUserLabel :exec
+UPDATE sources
+SET meta_user_label = $1
+WHERE id = $2
+`
+
+type UpdateSourceUserLabelParams struct {
+	MetaUserLabel *string
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateSourceUserLabel(ctx context.Context, arg UpdateSourceUserLabelParams) error {
+	_, err := q.db.Exec(ctx, updateSourceUserLabel, arg.MetaUserLabel, arg.ID)
+	return err
+}
+
 const upsertSource = `-- name: UpsertSource :one
 INSERT INTO sources (
-    id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -321,8 +337,7 @@ SET
     parents = EXCLUDED.parents,
     clock_name = EXCLUDED.clock_name,
     format = EXCLUDED.format,
-    audio_channels = EXCLUDED.audio_channels,
-    meta_user_label = EXCLUDED.meta_user_label
+    audio_channels = EXCLUDED.audio_channels
 WHERE
     sources.meta_api_version = EXCLUDED.meta_api_version
     AND sources.resource_version < EXCLUDED.resource_version
@@ -342,7 +357,6 @@ type UpsertSourceParams struct {
 	ClockName       *string
 	Format          string
 	AudioChannels   []byte
-	MetaUserLabel   *string
 	MetaApiVersion  string
 }
 
@@ -360,7 +374,6 @@ func (q *Queries) UpsertSource(ctx context.Context, arg UpsertSourceParams) (Sou
 		arg.ClockName,
 		arg.Format,
 		arg.AudioChannels,
-		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Source

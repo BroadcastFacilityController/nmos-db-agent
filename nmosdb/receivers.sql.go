@@ -302,11 +302,27 @@ func (q *Queries) ListReceiversPaginated(ctx context.Context, arg ListReceiversP
 	return items, nil
 }
 
+const updateReceiverUserLabel = `-- name: UpdateReceiverUserLabel :exec
+UPDATE receivers
+SET meta_user_label = $1
+WHERE id = $2
+`
+
+type UpdateReceiverUserLabelParams struct {
+	MetaUserLabel *string
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateReceiverUserLabel(ctx context.Context, arg UpdateReceiverUserLabelParams) error {
+	_, err := q.db.Exec(ctx, updateReceiverUserLabel, arg.MetaUserLabel, arg.ID)
+	return err
+}
+
 const upsertReceiver = `-- name: UpsertReceiver :one
 INSERT INTO receivers (
-    id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -320,8 +336,7 @@ SET
     interface_bindings = EXCLUDED.interface_bindings,
     subscription_sender = EXCLUDED.subscription_sender,
     format = EXCLUDED.format,
-    caps = EXCLUDED.caps,
-    meta_user_label = EXCLUDED.meta_user_label
+    caps = EXCLUDED.caps
 WHERE
     receivers.meta_api_version = EXCLUDED.meta_api_version
     AND receivers.resource_version < EXCLUDED.resource_version
@@ -341,7 +356,6 @@ type UpsertReceiverParams struct {
 	SubscriptionActive pgtype.Bool
 	Format             *string
 	Caps               []byte
-	MetaUserLabel      *string
 	MetaApiVersion     string
 }
 
@@ -359,7 +373,6 @@ func (q *Queries) UpsertReceiver(ctx context.Context, arg UpsertReceiverParams) 
 		arg.SubscriptionActive,
 		arg.Format,
 		arg.Caps,
-		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Receiver
