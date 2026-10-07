@@ -13,7 +13,7 @@ import (
 )
 
 const getSender = `-- name: GetSender :one
-SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at FROM senders
+SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version, meta_created_at FROM senders
 WHERE id = $1 LIMIT 1
 `
 
@@ -35,6 +35,7 @@ func (q *Queries) GetSender(ctx context.Context, id uuid.UUID) (Sender, error) {
 		&i.SubscriptionReceiver,
 		&i.SubscriptionActive,
 		&i.TransportFile,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -42,7 +43,7 @@ func (q *Queries) GetSender(ctx context.Context, id uuid.UUID) (Sender, error) {
 }
 
 const listSenders = `-- name: ListSenders :many
-SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at FROM senders
+SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version, meta_created_at FROM senders
 ORDER BY id
 `
 
@@ -70,6 +71,7 @@ func (q *Queries) ListSenders(ctx context.Context) ([]Sender, error) {
 			&i.SubscriptionReceiver,
 			&i.SubscriptionActive,
 			&i.TransportFile,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -84,7 +86,7 @@ func (q *Queries) ListSenders(ctx context.Context) ([]Sender, error) {
 }
 
 const listSendersByCreatedSince = `-- name: ListSendersByCreatedSince :many
-SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at FROM senders
+SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version, meta_created_at FROM senders
 WHERE meta_created_at >= $1
 ORDER BY meta_created_at
 `
@@ -113,6 +115,7 @@ func (q *Queries) ListSendersByCreatedSince(ctx context.Context, createdSince pg
 			&i.SubscriptionReceiver,
 			&i.SubscriptionActive,
 			&i.TransportFile,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -127,7 +130,7 @@ func (q *Queries) ListSendersByCreatedSince(ctx context.Context, createdSince pg
 }
 
 const listSendersByDeviceIDTransportAndFormat = `-- name: ListSendersByDeviceIDTransportAndFormat :many
-SELECT s.id, s.resource_version, s.label, s.description, s.tags, s.caps, s.flow_id, s.transport, s.device_id, s.manifest_href, s.interface_bindings, s.subscription_receiver, s.subscription_active, s.transport_file, s.meta_api_version, s.meta_created_at FROM senders s
+SELECT s.id, s.resource_version, s.label, s.description, s.tags, s.caps, s.flow_id, s.transport, s.device_id, s.manifest_href, s.interface_bindings, s.subscription_receiver, s.subscription_active, s.transport_file, s.meta_user_label, s.meta_api_version, s.meta_created_at FROM senders s
 JOIN flows f ON s.flow_id = f.id
 JOIN sources src ON f.source_id = src.id
 WHERE s.device_id = $1 AND s.transport = $2 AND f.format = $3 AND src.format = $4
@@ -170,6 +173,7 @@ func (q *Queries) ListSendersByDeviceIDTransportAndFormat(ctx context.Context, a
 			&i.SubscriptionReceiver,
 			&i.SubscriptionActive,
 			&i.TransportFile,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -184,7 +188,7 @@ func (q *Queries) ListSendersByDeviceIDTransportAndFormat(ctx context.Context, a
 }
 
 const listSendersByTransport = `-- name: ListSendersByTransport :many
-SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at FROM senders
+SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version, meta_created_at FROM senders
 WHERE transport = $1
 ORDER BY id
 `
@@ -213,6 +217,7 @@ func (q *Queries) ListSendersByTransport(ctx context.Context, transport string) 
 			&i.SubscriptionReceiver,
 			&i.SubscriptionActive,
 			&i.TransportFile,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -227,7 +232,7 @@ func (q *Queries) ListSendersByTransport(ctx context.Context, transport string) 
 }
 
 const listSendersByTransportAndFlowFormat = `-- name: ListSendersByTransportAndFlowFormat :many
-SELECT s.id, s.resource_version, s.label, s.description, s.tags, s.caps, s.flow_id, s.transport, s.device_id, s.manifest_href, s.interface_bindings, s.subscription_receiver, s.subscription_active, s.transport_file, s.meta_api_version, s.meta_created_at FROM senders s
+SELECT s.id, s.resource_version, s.label, s.description, s.tags, s.caps, s.flow_id, s.transport, s.device_id, s.manifest_href, s.interface_bindings, s.subscription_receiver, s.subscription_active, s.transport_file, s.meta_user_label, s.meta_api_version, s.meta_created_at FROM senders s
 JOIN flows f ON s.flow_id = f.id
 JOIN sources src ON f.source_id = src.id
 WHERE s.transport = $1 AND f.format = $2 AND src.format = $3
@@ -264,6 +269,7 @@ func (q *Queries) ListSendersByTransportAndFlowFormat(ctx context.Context, arg L
 			&i.SubscriptionReceiver,
 			&i.SubscriptionActive,
 			&i.TransportFile,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -278,7 +284,7 @@ func (q *Queries) ListSendersByTransportAndFlowFormat(ctx context.Context, arg L
 }
 
 const listSendersPaginated = `-- name: ListSendersPaginated :many
-SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at FROM senders
+SELECT id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version, meta_created_at FROM senders
 WHERE id >= $1
 ORDER BY id
 LIMIT $2
@@ -313,6 +319,7 @@ func (q *Queries) ListSendersPaginated(ctx context.Context, arg ListSendersPagin
 			&i.SubscriptionReceiver,
 			&i.SubscriptionActive,
 			&i.TransportFile,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -328,9 +335,9 @@ func (q *Queries) ListSendersPaginated(ctx context.Context, arg ListSendersPagin
 
 const upsertSender = `-- name: UpsertSender :one
 INSERT INTO senders (
-    id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version
+    id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -347,11 +354,12 @@ SET
     interface_bindings = EXCLUDED.interface_bindings,
     subscription_receiver = EXCLUDED.subscription_receiver,
     subscription_active = EXCLUDED.subscription_active,
-    transport_file = EXCLUDED.transport_file
+    transport_file = EXCLUDED.transport_file,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     senders.meta_api_version = EXCLUDED.meta_api_version
     AND senders.resource_version < EXCLUDED.resource_version
-RETURNING id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version, meta_created_at
+RETURNING id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version, meta_created_at
 `
 
 type UpsertSenderParams struct {
@@ -369,6 +377,7 @@ type UpsertSenderParams struct {
 	SubscriptionReceiver *uuid.UUID
 	SubscriptionActive   pgtype.Bool
 	TransportFile        []byte
+	MetaUserLabel        *string
 	MetaApiVersion       string
 }
 
@@ -388,6 +397,7 @@ func (q *Queries) UpsertSender(ctx context.Context, arg UpsertSenderParams) (Sen
 		arg.SubscriptionReceiver,
 		arg.SubscriptionActive,
 		arg.TransportFile,
+		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Sender
@@ -406,6 +416,7 @@ func (q *Queries) UpsertSender(ctx context.Context, arg UpsertSenderParams) (Sen
 		&i.SubscriptionReceiver,
 		&i.SubscriptionActive,
 		&i.TransportFile,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)

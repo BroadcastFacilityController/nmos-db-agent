@@ -13,7 +13,7 @@ import (
 )
 
 const getDevice = `-- name: GetDevice :one
-SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at FROM devices
 WHERE id = $1 LIMIT 1
 `
 
@@ -31,6 +31,7 @@ func (q *Queries) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 		&i.Senders,
 		&i.NodeID,
 		&i.Controls,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -38,7 +39,7 @@ func (q *Queries) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 }
 
 const getDeviceByReceiver = `-- name: GetDeviceByReceiver :one
-SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices D
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at FROM devices D
 WHERE D.id = (
     SELECT device_id FROM receivers R
     WHERE R.id = $1 LIMIT 1
@@ -59,6 +60,7 @@ func (q *Queries) GetDeviceByReceiver(ctx context.Context, id uuid.UUID) (Device
 		&i.Senders,
 		&i.NodeID,
 		&i.Controls,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -66,7 +68,7 @@ func (q *Queries) GetDeviceByReceiver(ctx context.Context, id uuid.UUID) (Device
 }
 
 const listDevices = `-- name: ListDevices :many
-SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at FROM devices
 ORDER BY id
 `
 
@@ -90,6 +92,7 @@ func (q *Queries) ListDevices(ctx context.Context) ([]Device, error) {
 			&i.Senders,
 			&i.NodeID,
 			&i.Controls,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -104,7 +107,7 @@ func (q *Queries) ListDevices(ctx context.Context) ([]Device, error) {
 }
 
 const listDevicesByCreatedSince = `-- name: ListDevicesByCreatedSince :many
-SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at FROM devices
 WHERE meta_created_at >= $1
 ORDER BY meta_created_at
 `
@@ -129,6 +132,7 @@ func (q *Queries) ListDevicesByCreatedSince(ctx context.Context, createdSince pg
 			&i.Senders,
 			&i.NodeID,
 			&i.Controls,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -143,7 +147,7 @@ func (q *Queries) ListDevicesByCreatedSince(ctx context.Context, createdSince pg
 }
 
 const listDevicesByNodeID = `-- name: ListDevicesByNodeID :many
-SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at FROM devices
 WHERE node_id = $1
 ORDER BY id
 `
@@ -168,6 +172,7 @@ func (q *Queries) ListDevicesByNodeID(ctx context.Context, nodeID *uuid.UUID) ([
 			&i.Senders,
 			&i.NodeID,
 			&i.Controls,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -182,7 +187,7 @@ func (q *Queries) ListDevicesByNodeID(ctx context.Context, nodeID *uuid.UUID) ([
 }
 
 const listDevicesPaginated = `-- name: ListDevicesPaginated :many
-SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at FROM devices
+SELECT id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at FROM devices
 WHERE id >= $1
 ORDER BY id
 LIMIT $2
@@ -213,6 +218,7 @@ func (q *Queries) ListDevicesPaginated(ctx context.Context, arg ListDevicesPagin
 			&i.Senders,
 			&i.NodeID,
 			&i.Controls,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -228,9 +234,9 @@ func (q *Queries) ListDevicesPaginated(ctx context.Context, arg ListDevicesPagin
 
 const upsertDevice = `-- name: UpsertDevice :one
 INSERT INTO devices (
-    id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version
+    id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -243,11 +249,12 @@ SET
     receivers = EXCLUDED.receivers,
     senders = EXCLUDED.senders,
     node_id = EXCLUDED.node_id,
-    controls = EXCLUDED.controls
+    controls = EXCLUDED.controls,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     devices.meta_api_version = EXCLUDED.meta_api_version
     AND devices.resource_version < EXCLUDED.resource_version
-RETURNING id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version, meta_created_at
+RETURNING id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version, meta_created_at
 `
 
 type UpsertDeviceParams struct {
@@ -261,6 +268,7 @@ type UpsertDeviceParams struct {
 	Senders         []string
 	NodeID          *uuid.UUID
 	Controls        []byte
+	MetaUserLabel   *string
 	MetaApiVersion  string
 }
 
@@ -276,6 +284,7 @@ func (q *Queries) UpsertDevice(ctx context.Context, arg UpsertDeviceParams) (Dev
 		arg.Senders,
 		arg.NodeID,
 		arg.Controls,
+		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Device
@@ -290,6 +299,7 @@ func (q *Queries) UpsertDevice(ctx context.Context, arg UpsertDeviceParams) (Dev
 		&i.Senders,
 		&i.NodeID,
 		&i.Controls,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)

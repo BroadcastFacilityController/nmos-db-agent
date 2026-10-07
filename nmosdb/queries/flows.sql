@@ -34,9 +34,9 @@ ORDER BY id;
 
 -- name: UpsertFlow :one
 INSERT INTO flows (
-    id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version
+    id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version
 ) VALUES (
-    @id, @resource_version, @label, @description, @tags, @source_id, @device_id, @parents, @grain_rate, @format, @media_type, @frame_width, @frame_height, @interlace_mode, @colorspace, @transfer_characteristic, @components, @sample_rate, @bit_depth, @event_type, @did_sdid, @meta_api_version
+    @id, @resource_version, @label, @description, @tags, @source_id, @device_id, @parents, @grain_rate, @format, @media_type, @frame_width, @frame_height, @interlace_mode, @colorspace, @transfer_characteristic, @components, @sample_rate, @bit_depth, @event_type, @did_sdid, @meta_user_label, @meta_api_version
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -60,7 +60,8 @@ SET
     sample_rate = EXCLUDED.sample_rate,
     bit_depth = EXCLUDED.bit_depth,
     event_type = EXCLUDED.event_type,
-    did_sdid = EXCLUDED.did_sdid
+    did_sdid = EXCLUDED.did_sdid,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     flows.meta_api_version = EXCLUDED.meta_api_version
     AND flows.resource_version < EXCLUDED.resource_version

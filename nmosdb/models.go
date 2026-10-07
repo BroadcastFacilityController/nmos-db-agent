@@ -20,6 +20,7 @@ type Device struct {
 	Senders         []string
 	NodeID          *uuid.UUID
 	Controls        []byte
+	MetaUserLabel   *string
 	MetaApiVersion  string
 	MetaCreatedAt   pgtype.Timestamptz
 }
@@ -46,6 +47,7 @@ type Flow struct {
 	BitDepth               *int32
 	EventType              *string
 	DidSdid                []byte
+	MetaUserLabel          *string
 	MetaApiVersion         string
 	MetaCreatedAt          pgtype.Timestamptz
 }
@@ -62,6 +64,7 @@ type Node struct {
 	Services        []byte
 	Clocks          []byte
 	Interfaces      []byte
+	MetaUserLabel   *string
 	MetaApiVersion  string
 	MetaCreatedAt   pgtype.Timestamptz
 }
@@ -79,6 +82,7 @@ type Receiver struct {
 	SubscriptionActive pgtype.Bool
 	Format             *string
 	Caps               []byte
+	MetaUserLabel      *string
 	MetaApiVersion     string
 	MetaCreatedAt      pgtype.Timestamptz
 }
@@ -98,6 +102,7 @@ type Sender struct {
 	SubscriptionReceiver *uuid.UUID
 	SubscriptionActive   pgtype.Bool
 	TransportFile        []byte
+	MetaUserLabel        *string
 	MetaApiVersion       string
 	MetaCreatedAt        pgtype.Timestamptz
 }
@@ -115,6 +120,7 @@ type Source struct {
 	ClockName       *string
 	Format          string
 	AudioChannels   []byte
+	MetaUserLabel   *string
 	MetaApiVersion  string
 	MetaCreatedAt   pgtype.Timestamptz
 }

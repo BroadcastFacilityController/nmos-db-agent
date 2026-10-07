@@ -13,7 +13,7 @@ import (
 )
 
 const getSource = `-- name: GetSource :one
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 WHERE id = $1 LIMIT 1
 `
 
@@ -33,6 +33,7 @@ func (q *Queries) GetSource(ctx context.Context, id uuid.UUID) (Source, error) {
 		&i.ClockName,
 		&i.Format,
 		&i.AudioChannels,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -40,7 +41,7 @@ func (q *Queries) GetSource(ctx context.Context, id uuid.UUID) (Source, error) {
 }
 
 const listSources = `-- name: ListSources :many
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 ORDER BY id
 `
 
@@ -66,6 +67,7 @@ func (q *Queries) ListSources(ctx context.Context) ([]Source, error) {
 			&i.ClockName,
 			&i.Format,
 			&i.AudioChannels,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -80,7 +82,7 @@ func (q *Queries) ListSources(ctx context.Context) ([]Source, error) {
 }
 
 const listSourcesByCreatedSince = `-- name: ListSourcesByCreatedSince :many
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 WHERE meta_created_at >= $1
 ORDER BY meta_created_at
 `
@@ -107,6 +109,7 @@ func (q *Queries) ListSourcesByCreatedSince(ctx context.Context, createdSince pg
 			&i.ClockName,
 			&i.Format,
 			&i.AudioChannels,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -121,7 +124,7 @@ func (q *Queries) ListSourcesByCreatedSince(ctx context.Context, createdSince pg
 }
 
 const listSourcesByDeviceID = `-- name: ListSourcesByDeviceID :many
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 WHERE device_id = $1
 ORDER BY id
 `
@@ -148,6 +151,7 @@ func (q *Queries) ListSourcesByDeviceID(ctx context.Context, deviceID *uuid.UUID
 			&i.ClockName,
 			&i.Format,
 			&i.AudioChannels,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -162,7 +166,7 @@ func (q *Queries) ListSourcesByDeviceID(ctx context.Context, deviceID *uuid.UUID
 }
 
 const listSourcesByDeviceIDAndFormat = `-- name: ListSourcesByDeviceIDAndFormat :many
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 WHERE device_id = $1 AND format = $2
 ORDER BY id
 `
@@ -194,6 +198,7 @@ func (q *Queries) ListSourcesByDeviceIDAndFormat(ctx context.Context, arg ListSo
 			&i.ClockName,
 			&i.Format,
 			&i.AudioChannels,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -208,7 +213,7 @@ func (q *Queries) ListSourcesByDeviceIDAndFormat(ctx context.Context, arg ListSo
 }
 
 const listSourcesByFormat = `-- name: ListSourcesByFormat :many
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 WHERE format = $1
 ORDER BY id
 `
@@ -235,6 +240,7 @@ func (q *Queries) ListSourcesByFormat(ctx context.Context, format string) ([]Sou
 			&i.ClockName,
 			&i.Format,
 			&i.AudioChannels,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -249,7 +255,7 @@ func (q *Queries) ListSourcesByFormat(ctx context.Context, format string) ([]Sou
 }
 
 const listSourcesPaginated = `-- name: ListSourcesPaginated :many
-SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at FROM sources
+SELECT id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at FROM sources
 WHERE id >= $1
 ORDER BY id
 LIMIT $2
@@ -282,6 +288,7 @@ func (q *Queries) ListSourcesPaginated(ctx context.Context, arg ListSourcesPagin
 			&i.ClockName,
 			&i.Format,
 			&i.AudioChannels,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -297,9 +304,9 @@ func (q *Queries) ListSourcesPaginated(ctx context.Context, arg ListSourcesPagin
 
 const upsertSource = `-- name: UpsertSource :one
 INSERT INTO sources (
-    id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version
+    id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -314,11 +321,12 @@ SET
     parents = EXCLUDED.parents,
     clock_name = EXCLUDED.clock_name,
     format = EXCLUDED.format,
-    audio_channels = EXCLUDED.audio_channels
+    audio_channels = EXCLUDED.audio_channels,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     sources.meta_api_version = EXCLUDED.meta_api_version
     AND sources.resource_version < EXCLUDED.resource_version
-RETURNING id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version, meta_created_at
+RETURNING id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version, meta_created_at
 `
 
 type UpsertSourceParams struct {
@@ -334,6 +342,7 @@ type UpsertSourceParams struct {
 	ClockName       *string
 	Format          string
 	AudioChannels   []byte
+	MetaUserLabel   *string
 	MetaApiVersion  string
 }
 
@@ -351,6 +360,7 @@ func (q *Queries) UpsertSource(ctx context.Context, arg UpsertSourceParams) (Sou
 		arg.ClockName,
 		arg.Format,
 		arg.AudioChannels,
+		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Source
@@ -367,6 +377,7 @@ func (q *Queries) UpsertSource(ctx context.Context, arg UpsertSourceParams) (Sou
 		&i.ClockName,
 		&i.Format,
 		&i.AudioChannels,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)

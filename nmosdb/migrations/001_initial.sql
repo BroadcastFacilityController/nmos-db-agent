@@ -14,6 +14,7 @@ CREATE TABLE nodes (
     clocks                  JSONB,
     interfaces              JSONB,
     -- Metadata
+    meta_user_label         TEXT,
     meta_api_version        TEXT NOT NULL,
     meta_created_at         TIMESTAMPTZ DEFAULT NOW()
 );
@@ -32,6 +33,7 @@ CREATE TABLE devices (
     node_id                 UUID REFERENCES nodes(id),
     controls                JSONB,
     -- Metadata
+    meta_user_label         TEXT,
     meta_api_version        TEXT NOT NULL,
     meta_created_at         TIMESTAMPTZ DEFAULT NOW()
 );
@@ -53,6 +55,7 @@ CREATE TABLE sources (
     -- Audio Source
     audio_channels          JSONB,
     -- Metadata
+    meta_user_label         TEXT,
     meta_api_version        TEXT NOT NULL,
     meta_created_at         TIMESTAMPTZ DEFAULT NOW()
 );
@@ -88,6 +91,7 @@ CREATE TABLE flows (
     -- SDI_ANC Data
     did_sdid                JSONB,
     -- Metadata
+    meta_user_label         TEXT,
     meta_api_version        TEXT NOT NULL,
     meta_created_at         TIMESTAMPTZ DEFAULT NOW()
 );
@@ -110,6 +114,7 @@ CREATE TABLE senders (
     subscription_active     BOOLEAN,
     transport_file          BYTEA,
     -- Metadata
+    meta_user_label         TEXT,
     meta_api_version        TEXT NOT NULL,
     meta_created_at         TIMESTAMPTZ DEFAULT NOW()
 );
@@ -130,6 +135,7 @@ CREATE TABLE receivers (
     format                  TEXT,
     caps                    JSONB,
     -- Metadata
+    meta_user_label         TEXT,
     meta_api_version        TEXT NOT NULL,
     meta_created_at         TIMESTAMPTZ DEFAULT NOW()
 );

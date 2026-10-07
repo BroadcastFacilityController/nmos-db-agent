@@ -13,7 +13,7 @@ import (
 )
 
 const getReceiver = `-- name: GetReceiver :one
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 WHERE id = $1 LIMIT 1
 `
 
@@ -33,6 +33,7 @@ func (q *Queries) GetReceiver(ctx context.Context, id uuid.UUID) (Receiver, erro
 		&i.SubscriptionActive,
 		&i.Format,
 		&i.Caps,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -40,7 +41,7 @@ func (q *Queries) GetReceiver(ctx context.Context, id uuid.UUID) (Receiver, erro
 }
 
 const listReceivers = `-- name: ListReceivers :many
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 ORDER BY id
 `
 
@@ -66,6 +67,7 @@ func (q *Queries) ListReceivers(ctx context.Context) ([]Receiver, error) {
 			&i.SubscriptionActive,
 			&i.Format,
 			&i.Caps,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -80,7 +82,7 @@ func (q *Queries) ListReceivers(ctx context.Context) ([]Receiver, error) {
 }
 
 const listReceiversByCreatedSince = `-- name: ListReceiversByCreatedSince :many
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 WHERE meta_created_at >= $1
 ORDER BY meta_created_at
 `
@@ -107,6 +109,7 @@ func (q *Queries) ListReceiversByCreatedSince(ctx context.Context, createdSince 
 			&i.SubscriptionActive,
 			&i.Format,
 			&i.Caps,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -121,7 +124,7 @@ func (q *Queries) ListReceiversByCreatedSince(ctx context.Context, createdSince 
 }
 
 const listReceiversByDeviceID = `-- name: ListReceiversByDeviceID :many
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 WHERE device_id = $1
 ORDER BY id
 `
@@ -148,6 +151,7 @@ func (q *Queries) ListReceiversByDeviceID(ctx context.Context, deviceID *uuid.UU
 			&i.SubscriptionActive,
 			&i.Format,
 			&i.Caps,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -162,7 +166,7 @@ func (q *Queries) ListReceiversByDeviceID(ctx context.Context, deviceID *uuid.UU
 }
 
 const listReceiversByDeviceIDAndTransport = `-- name: ListReceiversByDeviceIDAndTransport :many
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 WHERE device_id = $1 AND transport = $2
 ORDER BY id
 `
@@ -194,6 +198,7 @@ func (q *Queries) ListReceiversByDeviceIDAndTransport(ctx context.Context, arg L
 			&i.SubscriptionActive,
 			&i.Format,
 			&i.Caps,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -208,7 +213,7 @@ func (q *Queries) ListReceiversByDeviceIDAndTransport(ctx context.Context, arg L
 }
 
 const listReceiversByTransport = `-- name: ListReceiversByTransport :many
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 WHERE transport = $1
 ORDER BY id
 `
@@ -235,6 +240,7 @@ func (q *Queries) ListReceiversByTransport(ctx context.Context, transport *strin
 			&i.SubscriptionActive,
 			&i.Format,
 			&i.Caps,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -249,7 +255,7 @@ func (q *Queries) ListReceiversByTransport(ctx context.Context, transport *strin
 }
 
 const listReceiversPaginated = `-- name: ListReceiversPaginated :many
-SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at FROM receivers
+SELECT id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at FROM receivers
 WHERE id >= $1
 ORDER BY id
 LIMIT $2
@@ -282,6 +288,7 @@ func (q *Queries) ListReceiversPaginated(ctx context.Context, arg ListReceiversP
 			&i.SubscriptionActive,
 			&i.Format,
 			&i.Caps,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -297,9 +304,9 @@ func (q *Queries) ListReceiversPaginated(ctx context.Context, arg ListReceiversP
 
 const upsertReceiver = `-- name: UpsertReceiver :one
 INSERT INTO receivers (
-    id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version
+    id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -313,11 +320,12 @@ SET
     interface_bindings = EXCLUDED.interface_bindings,
     subscription_sender = EXCLUDED.subscription_sender,
     format = EXCLUDED.format,
-    caps = EXCLUDED.caps
+    caps = EXCLUDED.caps,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     receivers.meta_api_version = EXCLUDED.meta_api_version
     AND receivers.resource_version < EXCLUDED.resource_version
-RETURNING id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version, meta_created_at
+RETURNING id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version, meta_created_at
 `
 
 type UpsertReceiverParams struct {
@@ -333,6 +341,7 @@ type UpsertReceiverParams struct {
 	SubscriptionActive pgtype.Bool
 	Format             *string
 	Caps               []byte
+	MetaUserLabel      *string
 	MetaApiVersion     string
 }
 
@@ -350,6 +359,7 @@ func (q *Queries) UpsertReceiver(ctx context.Context, arg UpsertReceiverParams) 
 		arg.SubscriptionActive,
 		arg.Format,
 		arg.Caps,
+		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Receiver
@@ -366,6 +376,7 @@ func (q *Queries) UpsertReceiver(ctx context.Context, arg UpsertReceiverParams) 
 		&i.SubscriptionActive,
 		&i.Format,
 		&i.Caps,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)

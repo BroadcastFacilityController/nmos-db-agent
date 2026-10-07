@@ -13,7 +13,7 @@ import (
 )
 
 const getNode = `-- name: GetNode :one
-SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at FROM nodes
 WHERE id = $1 LIMIT 1
 `
 
@@ -32,6 +32,7 @@ func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (Node, error) {
 		&i.Services,
 		&i.Clocks,
 		&i.Interfaces,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -39,7 +40,7 @@ func (q *Queries) GetNode(ctx context.Context, id uuid.UUID) (Node, error) {
 }
 
 const getNodeByDevice = `-- name: GetNodeByDevice :one
-SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes N
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at FROM nodes N
 WHERE N.id = (
     SELECT node_id FROM devices D
     WHERE D.id = $1 LIMIT 1
@@ -61,6 +62,7 @@ func (q *Queries) GetNodeByDevice(ctx context.Context, id uuid.UUID) (Node, erro
 		&i.Services,
 		&i.Clocks,
 		&i.Interfaces,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -68,7 +70,7 @@ func (q *Queries) GetNodeByDevice(ctx context.Context, id uuid.UUID) (Node, erro
 }
 
 const getNodeByReceiver = `-- name: GetNodeByReceiver :one
-SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes N
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at FROM nodes N
 WHERE N.id = (
     SELECT node_id FROM devices D
     WHERE D.id = (
@@ -93,6 +95,7 @@ func (q *Queries) GetNodeByReceiver(ctx context.Context, id uuid.UUID) (Node, er
 		&i.Services,
 		&i.Clocks,
 		&i.Interfaces,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -100,7 +103,7 @@ func (q *Queries) GetNodeByReceiver(ctx context.Context, id uuid.UUID) (Node, er
 }
 
 const listNodes = `-- name: ListNodes :many
-SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at FROM nodes
 ORDER BY id
 `
 
@@ -125,6 +128,7 @@ func (q *Queries) ListNodes(ctx context.Context) ([]Node, error) {
 			&i.Services,
 			&i.Clocks,
 			&i.Interfaces,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -139,7 +143,7 @@ func (q *Queries) ListNodes(ctx context.Context) ([]Node, error) {
 }
 
 const listNodesByCreatedSince = `-- name: ListNodesByCreatedSince :many
-SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at FROM nodes
 WHERE meta_created_at >= $1
 ORDER BY meta_created_at
 `
@@ -165,6 +169,7 @@ func (q *Queries) ListNodesByCreatedSince(ctx context.Context, createdSince pgty
 			&i.Services,
 			&i.Clocks,
 			&i.Interfaces,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -179,7 +184,7 @@ func (q *Queries) ListNodesByCreatedSince(ctx context.Context, createdSince pgty
 }
 
 const listNodesPaginated = `-- name: ListNodesPaginated :many
-SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at FROM nodes
+SELECT id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at FROM nodes
 WHERE id >= $1
 ORDER BY id
 LIMIT $2
@@ -211,6 +216,7 @@ func (q *Queries) ListNodesPaginated(ctx context.Context, arg ListNodesPaginated
 			&i.Services,
 			&i.Clocks,
 			&i.Interfaces,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -226,9 +232,9 @@ func (q *Queries) ListNodesPaginated(ctx context.Context, arg ListNodesPaginated
 
 const upsertNode = `-- name: UpsertNode :one
 INSERT INTO nodes (
-    id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version
+    id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -242,11 +248,12 @@ SET
     caps = EXCLUDED.caps,
     services = EXCLUDED.services,
     clocks = EXCLUDED.clocks,
-    interfaces = EXCLUDED.interfaces
+    interfaces = EXCLUDED.interfaces,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     nodes.meta_api_version = EXCLUDED.meta_api_version
     AND nodes.resource_version < EXCLUDED.resource_version
-RETURNING id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version, meta_created_at
+RETURNING id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version, meta_created_at
 `
 
 type UpsertNodeParams struct {
@@ -261,6 +268,7 @@ type UpsertNodeParams struct {
 	Services        []byte
 	Clocks          []byte
 	Interfaces      []byte
+	MetaUserLabel   *string
 	MetaApiVersion  string
 }
 
@@ -277,6 +285,7 @@ func (q *Queries) UpsertNode(ctx context.Context, arg UpsertNodeParams) (Node, e
 		arg.Services,
 		arg.Clocks,
 		arg.Interfaces,
+		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Node
@@ -292,6 +301,7 @@ func (q *Queries) UpsertNode(ctx context.Context, arg UpsertNodeParams) (Node, e
 		&i.Services,
 		&i.Clocks,
 		&i.Interfaces,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)

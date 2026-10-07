@@ -13,7 +13,7 @@ import (
 )
 
 const getFlow = `-- name: GetFlow :one
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 WHERE id = $1 LIMIT 1
 `
 
@@ -42,6 +42,7 @@ func (q *Queries) GetFlow(ctx context.Context, id uuid.UUID) (Flow, error) {
 		&i.BitDepth,
 		&i.EventType,
 		&i.DidSdid,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
@@ -49,7 +50,7 @@ func (q *Queries) GetFlow(ctx context.Context, id uuid.UUID) (Flow, error) {
 }
 
 const listFlows = `-- name: ListFlows :many
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 ORDER BY id
 `
 
@@ -84,6 +85,7 @@ func (q *Queries) ListFlows(ctx context.Context) ([]Flow, error) {
 			&i.BitDepth,
 			&i.EventType,
 			&i.DidSdid,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -98,7 +100,7 @@ func (q *Queries) ListFlows(ctx context.Context) ([]Flow, error) {
 }
 
 const listFlowsByCreatedSince = `-- name: ListFlowsByCreatedSince :many
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 WHERE meta_created_at >= $1
 ORDER BY meta_created_at
 `
@@ -134,6 +136,7 @@ func (q *Queries) ListFlowsByCreatedSince(ctx context.Context, createdSince pgty
 			&i.BitDepth,
 			&i.EventType,
 			&i.DidSdid,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -148,7 +151,7 @@ func (q *Queries) ListFlowsByCreatedSince(ctx context.Context, createdSince pgty
 }
 
 const listFlowsByDeviceID = `-- name: ListFlowsByDeviceID :many
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 WHERE device_id = $1
 ORDER BY id
 `
@@ -184,6 +187,7 @@ func (q *Queries) ListFlowsByDeviceID(ctx context.Context, deviceID *uuid.UUID) 
 			&i.BitDepth,
 			&i.EventType,
 			&i.DidSdid,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -198,7 +202,7 @@ func (q *Queries) ListFlowsByDeviceID(ctx context.Context, deviceID *uuid.UUID) 
 }
 
 const listFlowsByDeviceIDAndFormat = `-- name: ListFlowsByDeviceIDAndFormat :many
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 WHERE device_id = $1 AND format = $2
 ORDER BY id
 `
@@ -239,6 +243,7 @@ func (q *Queries) ListFlowsByDeviceIDAndFormat(ctx context.Context, arg ListFlow
 			&i.BitDepth,
 			&i.EventType,
 			&i.DidSdid,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -253,7 +258,7 @@ func (q *Queries) ListFlowsByDeviceIDAndFormat(ctx context.Context, arg ListFlow
 }
 
 const listFlowsByFormat = `-- name: ListFlowsByFormat :many
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 WHERE format = $1
 ORDER BY id
 `
@@ -289,6 +294,7 @@ func (q *Queries) ListFlowsByFormat(ctx context.Context, format string) ([]Flow,
 			&i.BitDepth,
 			&i.EventType,
 			&i.DidSdid,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -303,7 +309,7 @@ func (q *Queries) ListFlowsByFormat(ctx context.Context, format string) ([]Flow,
 }
 
 const listFlowsPaginated = `-- name: ListFlowsPaginated :many
-SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at FROM flows
+SELECT id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at FROM flows
 WHERE id >= $1
 ORDER BY id
 LIMIT $2
@@ -345,6 +351,7 @@ func (q *Queries) ListFlowsPaginated(ctx context.Context, arg ListFlowsPaginated
 			&i.BitDepth,
 			&i.EventType,
 			&i.DidSdid,
+			&i.MetaUserLabel,
 			&i.MetaApiVersion,
 			&i.MetaCreatedAt,
 		); err != nil {
@@ -360,9 +367,9 @@ func (q *Queries) ListFlowsPaginated(ctx context.Context, arg ListFlowsPaginated
 
 const upsertFlow = `-- name: UpsertFlow :one
 INSERT INTO flows (
-    id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version
+    id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -386,11 +393,12 @@ SET
     sample_rate = EXCLUDED.sample_rate,
     bit_depth = EXCLUDED.bit_depth,
     event_type = EXCLUDED.event_type,
-    did_sdid = EXCLUDED.did_sdid
+    did_sdid = EXCLUDED.did_sdid,
+    meta_user_label = EXCLUDED.meta_user_label
 WHERE
     flows.meta_api_version = EXCLUDED.meta_api_version
     AND flows.resource_version < EXCLUDED.resource_version
-RETURNING id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_api_version, meta_created_at
+RETURNING id, resource_version, label, description, tags, source_id, device_id, parents, grain_rate, format, media_type, frame_width, frame_height, interlace_mode, colorspace, transfer_characteristic, components, sample_rate, bit_depth, event_type, did_sdid, meta_user_label, meta_api_version, meta_created_at
 `
 
 type UpsertFlowParams struct {
@@ -415,6 +423,7 @@ type UpsertFlowParams struct {
 	BitDepth               *int32
 	EventType              *string
 	DidSdid                []byte
+	MetaUserLabel          *string
 	MetaApiVersion         string
 }
 
@@ -441,6 +450,7 @@ func (q *Queries) UpsertFlow(ctx context.Context, arg UpsertFlowParams) (Flow, e
 		arg.BitDepth,
 		arg.EventType,
 		arg.DidSdid,
+		arg.MetaUserLabel,
 		arg.MetaApiVersion,
 	)
 	var i Flow
@@ -466,6 +476,7 @@ func (q *Queries) UpsertFlow(ctx context.Context, arg UpsertFlowParams) (Flow, e
 		&i.BitDepth,
 		&i.EventType,
 		&i.DidSdid,
+		&i.MetaUserLabel,
 		&i.MetaApiVersion,
 		&i.MetaCreatedAt,
 	)
