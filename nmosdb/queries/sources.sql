@@ -32,11 +32,16 @@ SELECT * FROM sources
 WHERE device_id = $1 AND format = $2
 ORDER BY id;
 
+-- name: UpdateSourceUserLabel :exec
+UPDATE sources
+SET meta_user_label = @meta_user_label
+WHERE id = @id;
+
 -- name: UpsertSource :one
 INSERT INTO sources (
-    id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, grain_rate, caps, device_id, parents, clock_name, format, audio_channels, meta_api_version
 ) VALUES (
-    @id, @resource_version, @label, @description, @tags, @grain_rate, @caps, @device_id, @parents, @clock_name, @format, @audio_channels, @meta_user_label, @meta_api_version
+    @id, @resource_version, @label, @description, @tags, @grain_rate, @caps, @device_id, @parents, @clock_name, @format, @audio_channels, @meta_api_version
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -51,8 +56,7 @@ SET
     parents = EXCLUDED.parents,
     clock_name = EXCLUDED.clock_name,
     format = EXCLUDED.format,
-    audio_channels = EXCLUDED.audio_channels,
-    meta_user_label = EXCLUDED.meta_user_label
+    audio_channels = EXCLUDED.audio_channels
 WHERE
     sources.meta_api_version = EXCLUDED.meta_api_version
     AND sources.resource_version < EXCLUDED.resource_version

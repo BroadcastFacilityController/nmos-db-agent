@@ -32,11 +32,16 @@ SELECT * FROM receivers
 WHERE device_id = $1 AND transport = $2
 ORDER BY id;
 
+-- name: UpdateReceiverUserLabel :exec
+UPDATE receivers
+SET meta_user_label = @meta_user_label
+WHERE id = @id;
+
 -- name: UpsertReceiver :one
 INSERT INTO receivers (
-    id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, device_id, transport, interface_bindings, subscription_sender, subscription_active, format, caps, meta_api_version
 ) VALUES (
-    @id, @resource_version, @label, @description, @tags, @device_id, @transport, @interface_bindings, @subscription_sender, @subscription_active, @format, @caps, @meta_user_label, @meta_api_version
+    @id, @resource_version, @label, @description, @tags, @device_id, @transport, @interface_bindings, @subscription_sender, @subscription_active, @format, @caps, @meta_api_version
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -50,8 +55,7 @@ SET
     interface_bindings = EXCLUDED.interface_bindings,
     subscription_sender = EXCLUDED.subscription_sender,
     format = EXCLUDED.format,
-    caps = EXCLUDED.caps,
-    meta_user_label = EXCLUDED.meta_user_label
+    caps = EXCLUDED.caps
 WHERE
     receivers.meta_api_version = EXCLUDED.meta_api_version
     AND receivers.resource_version < EXCLUDED.resource_version

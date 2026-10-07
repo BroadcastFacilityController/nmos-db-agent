@@ -34,11 +34,16 @@ SELECT * FROM nodes
 WHERE meta_created_at >= @created_since
 ORDER BY meta_created_at;
 
+-- name: UpdateNodeUserLabel :exec
+UPDATE nodes
+SET meta_user_label = @meta_user_label
+WHERE id = @id;
+
 -- name: UpsertNode :one
 INSERT INTO nodes (
-    id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, api_versions, api_endpoints, caps, services, clocks, interfaces, meta_api_version
 ) VALUES (
-    @id, @resource_version, @label, @description, @tags, @api_versions, @api_endpoints, @caps, @services, @clocks, @interfaces, @meta_user_label, @meta_api_version
+    @id, @resource_version, @label, @description, @tags, @api_versions, @api_endpoints, @caps, @services, @clocks, @interfaces, @meta_api_version
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -52,8 +57,7 @@ SET
     caps = EXCLUDED.caps,
     services = EXCLUDED.services,
     clocks = EXCLUDED.clocks,
-    interfaces = EXCLUDED.interfaces,
-    meta_user_label = EXCLUDED.meta_user_label
+    interfaces = EXCLUDED.interfaces
 WHERE
     nodes.meta_api_version = EXCLUDED.meta_api_version
     AND nodes.resource_version < EXCLUDED.resource_version

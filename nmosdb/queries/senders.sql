@@ -36,11 +36,16 @@ JOIN sources src ON f.source_id = src.id
 WHERE s.device_id = @device_id AND s.transport = @transport AND f.format = @flow_format AND src.format = @source_format
 ORDER BY s.id;
 
+-- name: UpdateSenderUserLabel :exec
+UPDATE senders
+SET meta_user_label = @meta_user_label
+WHERE id = @id;
+
 -- name: UpsertSender :one
 INSERT INTO senders (
-    id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, caps, flow_id, transport, device_id, manifest_href, interface_bindings, subscription_receiver, subscription_active, transport_file, meta_api_version
 ) VALUES (
-    @id, @resource_version, @label, @description, @tags, @caps, @flow_id, @transport, @device_id, @manifest_href, @interface_bindings, @subscription_receiver, @subscription_active, @transport_file, @meta_user_label, @meta_api_version
+    @id, @resource_version, @label, @description, @tags, @caps, @flow_id, @transport, @device_id, @manifest_href, @interface_bindings, @subscription_receiver, @subscription_active, @transport_file, @meta_api_version
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -57,8 +62,7 @@ SET
     interface_bindings = EXCLUDED.interface_bindings,
     subscription_receiver = EXCLUDED.subscription_receiver,
     subscription_active = EXCLUDED.subscription_active,
-    transport_file = EXCLUDED.transport_file,
-    meta_user_label = EXCLUDED.meta_user_label
+    transport_file = EXCLUDED.transport_file
 WHERE
     senders.meta_api_version = EXCLUDED.meta_api_version
     AND senders.resource_version < EXCLUDED.resource_version

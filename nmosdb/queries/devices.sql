@@ -29,11 +29,16 @@ SELECT * FROM devices
 WHERE meta_created_at >= @created_since
 ORDER BY meta_created_at;
 
+-- name: UpdateDeviceUserLabel :exec
+UPDATE devices
+SET meta_user_label = @meta_user_label
+WHERE id = @id;
+
 -- name: UpsertDevice :one
 INSERT INTO devices (
-    id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_user_label, meta_api_version
+    id, resource_version, label, description, tags, type, receivers, senders, node_id, controls, meta_api_version
 ) VALUES (
-    @id, @resource_version, @label, @description, @tags, @type, @receivers, @senders, @node_id, @controls, @meta_user_label, @meta_api_version
+    @id, @resource_version, @label, @description, @tags, @type, @receivers, @senders, @node_id, @controls, @meta_api_version
 )
 ON CONFLICT (id) 
 DO UPDATE
@@ -46,8 +51,7 @@ SET
     receivers = EXCLUDED.receivers,
     senders = EXCLUDED.senders,
     node_id = EXCLUDED.node_id,
-    controls = EXCLUDED.controls,
-    meta_user_label = EXCLUDED.meta_user_label
+    controls = EXCLUDED.controls
 WHERE
     devices.meta_api_version = EXCLUDED.meta_api_version
     AND devices.resource_version < EXCLUDED.resource_version
