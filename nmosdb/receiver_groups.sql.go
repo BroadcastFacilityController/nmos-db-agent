@@ -84,6 +84,163 @@ func (q *Queries) ListReceiverGroupsByDeviceID(ctx context.Context, deviceID *uu
 	return items, nil
 }
 
+const listReceiverGroupsByDeviceIDAndGroupName = `-- name: ListReceiverGroupsByDeviceIDAndGroupName :many
+SELECT
+    d.id, d.resource_version, d.label, d.description, d.tags, d.type, d.receivers, d.senders, d.node_id, d.controls, d.meta_user_label, d.meta_api_version, d.meta_created_at,
+    rg.group_name,
+    rg.group_member,
+    r.id, r.resource_version, r.label, r.description, r.tags, r.device_id, r.transport, r.interface_bindings, r.subscription_sender, r.subscription_active, r.format, r.caps, r.meta_user_label, r.meta_api_version, r.meta_created_at
+FROM receiver_groups rg
+JOIN receivers r
+    ON r.id = rg.receiver_id
+JOIN devices d
+    ON d.id = rg.device_id
+WHERE
+    rg.device_id = $1 AND rg.group_name = $2
+`
+
+type ListReceiverGroupsByDeviceIDAndGroupNameParams struct {
+	DeviceID  *uuid.UUID
+	GroupName string
+}
+
+type ListReceiverGroupsByDeviceIDAndGroupNameRow struct {
+	Device      Device
+	GroupName   string
+	GroupMember string
+	Receiver    Receiver
+}
+
+func (q *Queries) ListReceiverGroupsByDeviceIDAndGroupName(ctx context.Context, arg ListReceiverGroupsByDeviceIDAndGroupNameParams) ([]ListReceiverGroupsByDeviceIDAndGroupNameRow, error) {
+	rows, err := q.db.Query(ctx, listReceiverGroupsByDeviceIDAndGroupName, arg.DeviceID, arg.GroupName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListReceiverGroupsByDeviceIDAndGroupNameRow
+	for rows.Next() {
+		var i ListReceiverGroupsByDeviceIDAndGroupNameRow
+		if err := rows.Scan(
+			&i.Device.ID,
+			&i.Device.ResourceVersion,
+			&i.Device.Label,
+			&i.Device.Description,
+			&i.Device.Tags,
+			&i.Device.Type,
+			&i.Device.Receivers,
+			&i.Device.Senders,
+			&i.Device.NodeID,
+			&i.Device.Controls,
+			&i.Device.MetaUserLabel,
+			&i.Device.MetaApiVersion,
+			&i.Device.MetaCreatedAt,
+			&i.GroupName,
+			&i.GroupMember,
+			&i.Receiver.ID,
+			&i.Receiver.ResourceVersion,
+			&i.Receiver.Label,
+			&i.Receiver.Description,
+			&i.Receiver.Tags,
+			&i.Receiver.DeviceID,
+			&i.Receiver.Transport,
+			&i.Receiver.InterfaceBindings,
+			&i.Receiver.SubscriptionSender,
+			&i.Receiver.SubscriptionActive,
+			&i.Receiver.Format,
+			&i.Receiver.Caps,
+			&i.Receiver.MetaUserLabel,
+			&i.Receiver.MetaApiVersion,
+			&i.Receiver.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listReceiverGroupsByDeviceIDAndGroupNameAndFormat = `-- name: ListReceiverGroupsByDeviceIDAndGroupNameAndFormat :many
+SELECT
+    d.id, d.resource_version, d.label, d.description, d.tags, d.type, d.receivers, d.senders, d.node_id, d.controls, d.meta_user_label, d.meta_api_version, d.meta_created_at,
+    rg.group_name,
+    rg.group_member,
+    r.id, r.resource_version, r.label, r.description, r.tags, r.device_id, r.transport, r.interface_bindings, r.subscription_sender, r.subscription_active, r.format, r.caps, r.meta_user_label, r.meta_api_version, r.meta_created_at
+FROM receiver_groups rg
+JOIN receivers r
+    ON r.id = rg.receiver_id
+JOIN devices d
+    ON d.id = rg.device_id
+WHERE
+    rg.device_id = $1 AND rg.group_name = $2 AND r.format = $3
+`
+
+type ListReceiverGroupsByDeviceIDAndGroupNameAndFormatParams struct {
+	DeviceID  *uuid.UUID
+	GroupName string
+	Format    *string
+}
+
+type ListReceiverGroupsByDeviceIDAndGroupNameAndFormatRow struct {
+	Device      Device
+	GroupName   string
+	GroupMember string
+	Receiver    Receiver
+}
+
+func (q *Queries) ListReceiverGroupsByDeviceIDAndGroupNameAndFormat(ctx context.Context, arg ListReceiverGroupsByDeviceIDAndGroupNameAndFormatParams) ([]ListReceiverGroupsByDeviceIDAndGroupNameAndFormatRow, error) {
+	rows, err := q.db.Query(ctx, listReceiverGroupsByDeviceIDAndGroupNameAndFormat, arg.DeviceID, arg.GroupName, arg.Format)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListReceiverGroupsByDeviceIDAndGroupNameAndFormatRow
+	for rows.Next() {
+		var i ListReceiverGroupsByDeviceIDAndGroupNameAndFormatRow
+		if err := rows.Scan(
+			&i.Device.ID,
+			&i.Device.ResourceVersion,
+			&i.Device.Label,
+			&i.Device.Description,
+			&i.Device.Tags,
+			&i.Device.Type,
+			&i.Device.Receivers,
+			&i.Device.Senders,
+			&i.Device.NodeID,
+			&i.Device.Controls,
+			&i.Device.MetaUserLabel,
+			&i.Device.MetaApiVersion,
+			&i.Device.MetaCreatedAt,
+			&i.GroupName,
+			&i.GroupMember,
+			&i.Receiver.ID,
+			&i.Receiver.ResourceVersion,
+			&i.Receiver.Label,
+			&i.Receiver.Description,
+			&i.Receiver.Tags,
+			&i.Receiver.DeviceID,
+			&i.Receiver.Transport,
+			&i.Receiver.InterfaceBindings,
+			&i.Receiver.SubscriptionSender,
+			&i.Receiver.SubscriptionActive,
+			&i.Receiver.Format,
+			&i.Receiver.Caps,
+			&i.Receiver.MetaUserLabel,
+			&i.Receiver.MetaApiVersion,
+			&i.Receiver.MetaCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listReceiverGroupsBySenderID = `-- name: ListReceiverGroupsBySenderID :many
 SELECT rg.device_id, rg.group_name, rg.group_member, rg.receiver_id
 FROM receiver_groups rg
