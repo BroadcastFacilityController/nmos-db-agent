@@ -87,6 +87,13 @@ type Receiver struct {
 	MetaCreatedAt      pgtype.Timestamptz
 }
 
+type ReceiverGroup struct {
+	DeviceID    *uuid.UUID
+	GroupName   string
+	GroupMember string
+	ReceiverID  uuid.UUID
+}
+
 type Sender struct {
 	ID                   uuid.UUID
 	ResourceVersion      string
@@ -105,6 +112,13 @@ type Sender struct {
 	MetaUserLabel        *string
 	MetaApiVersion       string
 	MetaCreatedAt        pgtype.Timestamptz
+}
+
+type SenderGroup struct {
+	DeviceID    *uuid.UUID
+	GroupName   string
+	GroupMember string
+	SenderID    uuid.UUID
 }
 
 type Source struct {
