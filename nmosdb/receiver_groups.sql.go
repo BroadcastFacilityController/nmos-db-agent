@@ -13,19 +13,21 @@ import (
 
 const listReceiverGroupsByDeviceID = `-- name: ListReceiverGroupsByDeviceID :many
 SELECT
-    rg.device_id,
+    d.id, d.resource_version, d.label, d.description, d.tags, d.type, d.receivers, d.senders, d.node_id, d.controls, d.meta_user_label, d.meta_api_version, d.meta_created_at,
     rg.group_name,
     rg.group_member,
     r.id, r.resource_version, r.label, r.description, r.tags, r.device_id, r.transport, r.interface_bindings, r.subscription_sender, r.subscription_active, r.format, r.caps, r.meta_user_label, r.meta_api_version, r.meta_created_at
 FROM receiver_groups rg
 JOIN receivers r
     ON r.id = rg.receiver_id
+JOIN devices d
+    ON d.id = rg.device_id
 WHERE
     rg.device_id = $1
 `
 
 type ListReceiverGroupsByDeviceIDRow struct {
-	DeviceID    *uuid.UUID
+	Device      Device
 	GroupName   string
 	GroupMember string
 	Receiver    Receiver
@@ -41,7 +43,19 @@ func (q *Queries) ListReceiverGroupsByDeviceID(ctx context.Context, deviceID *uu
 	for rows.Next() {
 		var i ListReceiverGroupsByDeviceIDRow
 		if err := rows.Scan(
-			&i.DeviceID,
+			&i.Device.ID,
+			&i.Device.ResourceVersion,
+			&i.Device.Label,
+			&i.Device.Description,
+			&i.Device.Tags,
+			&i.Device.Type,
+			&i.Device.Receivers,
+			&i.Device.Senders,
+			&i.Device.NodeID,
+			&i.Device.Controls,
+			&i.Device.MetaUserLabel,
+			&i.Device.MetaApiVersion,
+			&i.Device.MetaCreatedAt,
 			&i.GroupName,
 			&i.GroupMember,
 			&i.Receiver.ID,

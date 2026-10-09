@@ -1,12 +1,14 @@
 -- name: ListSenderGroupsByDeviceID :many
 SELECT
-    sg.device_id,
+    sqlc.embed(d),
     sg.group_name,
     sg.group_member,
     sqlc.embed(s)
 FROM sender_groups sg
 JOIN senders s
     ON s.id = sg.sender_id
+JOIN devices d
+    ON d.id = sg.device_id
 WHERE
     sg.device_id = @device_id;
 
